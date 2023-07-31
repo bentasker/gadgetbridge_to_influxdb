@@ -90,7 +90,9 @@ def extract_data(cur):
         devices[f"dev-{r[0]}"] = r[1]
 
     # Get SpO2 info
-    spo2_data_query = f"SELECT TIMESTAMP, DEVICE_ID, TYPE_NUM, SPO2 FROM HUAMI_SPO2_SAMPLE WHERE TIMESTAMP >= {query_start_bound} ORDER BY TIMESTAMP ASC"
+    spo2_data_query = ("SELECT TIMESTAMP, DEVICE_ID, TYPE_NUM, SPO2 FROM HUAMI_SPO2_SAMPLE "
+        f"WHERE TIMESTAMP >= {query_start_bound} "
+        "ORDER BY TIMESTAMP ASC")
 
     res = cur.execute(spo2_data_query)
     for r in res.fetchall():
@@ -106,7 +108,9 @@ def extract_data(cur):
             }
         results.append(row)
     
-    stress_data_query = f"SELECT TIMESTAMP, DEVICE_ID, TYPE_NUM, STRESS FROM HUAMI_STRESS_SAMPLE WHERE TIMESTAMP >= {query_start_bound} ORDER BY TIMESTAMP ASC"
+    stress_data_query = ("SELECT TIMESTAMP, DEVICE_ID, TYPE_NUM, STRESS FROM HUAMI_STRESS_SAMPLE "
+        f"WHERE TIMESTAMP >= {query_start_bound} "
+        "ORDER BY TIMESTAMP ASC")
     
     res = cur.execute(stress_data_query)
     for r in res.fetchall():
@@ -122,8 +126,70 @@ def extract_data(cur):
             }
         results.append(row)    
     
+    data_query = ("SELECT TIMESTAMP, DEVICE_ID, RATE FROM HUAMI_SLEEP_RESPIRATORY_RATE_SAMPLE "
+        f"WHERE TIMESTAMP >= {query_start_bound} "
+        "ORDER BY TIMESTAMP ASC")
     
+    res = cur.execute(data_query)
+    for r in res.fetchall():
+        row = {
+                "timestamp": r[0] * 1000000000, # Convert to nanos
+                fields : {
+                    "sleep_respiratory_rate" : r[2]
+                    },
+                tags : {
+                    "device" : devices[f"dev-{r[1]}"]
+                    }
+            }
+        results.append(row)        
 
+
+    data_query = ("SELECT TIMESTAMP, DEVICE_ID, PAI_LOW, PAI_MODERATE, PAI_HIGH, TIME_LOW," 
+        "TIME_MODERATE, TIME_HIGH, PAI_TODAY, PAI_TOTAL "
+        "FROM HUAMI_PAI_SAMPLE "
+        f"WHERE TIMESTAMP >= {query_start_bound} ORDER BY TIMESTAMP ASC")
+    
+    res = cur.execute(data_query)
+    for r in res.fetchall():
+        row = {
+                "timestamp": r[0] * 1000000000, # Convert to nanos
+                fields : {
+                    "pai_low" : r[2],
+                    "pai_moderate" : r[3],
+                    "pai_high" : r[4],
+                    "time_low" : r[5],
+                    "time_moderate" : r[6],
+                    "time_high" : r[7],
+                    "pai_today" : r[8],
+                    "pai_total" : r[9]
+                    },
+                tags : {
+                    "device" : devices[f"dev-{r[1]}"]
+                    }
+            }
+        results.append(row)        
+
+    data_query = ("SELECT TIMESTAMP, DEVICE_ID, LEVEL, BATTERY_INDEX FROM BATTERY_LEVEL "
+        f"WHERE TIMESTAMP >= {query_start_bound} "
+        "ORDER BY TIMESTAMP ASC")
+    
+    res = cur.execute(data_query)
+    for r in res.fetchall():
+        row = {
+                "timestamp": r[0] * 1000000000, # Convert to nanos
+                fields : {
+                    "battery_level" : r[2]
+                    },
+                tags : {
+                    "device" : devices[f"dev-{r[1]}"],
+                    "battery" : r[3]
+                    }
+            }
+        results.append(row)        
+
+
+
+    return results
 
 if not WEBDAV_URL:
     print("Error: WEBDAV_URL not set in environment")
