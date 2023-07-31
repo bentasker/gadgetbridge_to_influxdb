@@ -188,6 +188,33 @@ def extract_data(cur):
         results.append(row)        
 
 
+    # Heart rates are spread across tables, depending on the sampling types
+    rate_types = {
+        "manual" : "HUAMI_HEART_RATE_MANUAL_SAMPLE",
+        "max" : "HUAMI_HEART_RATE_MAX_SAMPLE",
+        "resting" : "HUAMI_HEART_RATE_RESTING_SAMPLE"
+        }
+    
+    for rate_type in rate_types:
+        query = (f"SELECT TIMESTAMP, DEVICE_ID, HEART_RATE FROM {rate_types[rate_type]} "
+            f"WHERE TIMESTAMP >= {query_start_bound} "
+            "ORDER BY TIMESTAMP ASC")
+        res = cur.execute(data_query)
+        for r in res.fetchall():
+            row = {
+                    "timestamp": r[0] * 1000000000, # Convert to nanos
+                    fields : {
+                        "heart_rate" : r[2]
+                        },
+                    tags : {
+                        "device" : devices[f"dev-{r[1]}"],
+                        "sample_type" : rate_type
+                        }
+                }
+            results.append(row)        
+        
+
+
 
     return results
 
