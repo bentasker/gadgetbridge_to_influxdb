@@ -9,7 +9,7 @@
 # Released under BSD 3-clause
 #
 #
-# pip install webdavclient3
+# pip install webdavclient3 influxdb-client
 '''
 Copyright 2023 B Tasker
 
@@ -31,6 +31,8 @@ import sys
 import tempfile
 import time
 from webdav3.client import Client
+from influxdb_client import InfluxDBClient, Point
+from influxdb_client.client.write_api import SYNCHRONOUS
 
 
 
@@ -49,6 +51,13 @@ EXPORT_FILE = os.getenv("EXPORT_FILENAME", "gadgetbridge")
 
 # How far back in time should we query when extracting stats?
 QUERY_DURATION = int(os.getenv("QUERY_DURATION", 7200))
+
+# InfluxDB settings
+INFLUXDB_URL = os.getenv("INFLUXDB_URL", False)
+INFLUXDB_TOKEN = os.getenv("INFLUXDB_TOKEN", "")
+INFLUXDB_ORG = os.getenv("INFLUXDB_ORG", "")
+INFLUXDB_MEASUREMENT = os.getenv("INFLUXDB_MEASUREMENT", "gadgetbridge")
+INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET", "testing_db")
 
 
 def fetch_database(webdav_client):
@@ -249,16 +258,41 @@ def extract_data(cur):
                     }
             }
         results.append(row)        
+
+    return results
+
+
+def write_results(results):
+    ''' Open a connection to InfluxDB and write the results in
+    '''
+
+    with InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG) as _client:
+        with _client.write_api() as _write_client:
+            # Iterate through the results generating and writing points
+            for row in results:
+                p = Point(INFLUXDB_MEASUREMENT)
+                for tag in row['tags']:
+                    p = p.tag(tag, row['tags'][tag])
+                    
+                for field in row['fields']:
+                    p = p.field(field, row['fields'][field])
+                    
+                p = p.time(row['timestamp'])
+                _write_client.write(INFLUXDB_BUCKET, p)
+                
     
 
 
-    return results
+
 
 if not WEBDAV_URL:
     print("Error: WEBDAV_URL not set in environment")
     sys.exit(1)
 
-
+if not INFLUXDB_URL:
+    print("Error: INFLUXDB_URL not set in environment")
+    sys.exit(1)
+    
 
 webdav_options = {
     "webdav_hostname" : WEBDAV_URL,
@@ -274,7 +308,11 @@ conn, cur  = open_database(tempdir)
 res = cur.execute("SELECT name FROM sqlite_master")
 print(res.fetchall())
 
-extract_data(cur)
+# Extract data from the DB
+results = extract_data(cur)
+
+# Write out to InfluxDB
+write_results(results)
 
 if tempdir not in ["/", ""]:
     print(tempdir)
