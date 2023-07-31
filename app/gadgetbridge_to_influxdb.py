@@ -26,6 +26,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 import os
 import shutil
+import sqlite3
 import sys
 import tempfile
 from webdav3.client import Client
@@ -65,6 +66,14 @@ def fetch_database(webdav_client):
     
 
 
+def open_database(tempdir):
+    ''' Open a handle on the database
+    '''
+    conn = sqlite3.connect(f"{tempdir}/gadgetbridge.sqlite")
+    cur = conn.cursor()
+    
+    return conn, cur
+
 
 
 
@@ -82,6 +91,11 @@ webdav_options = {
 
 webdav_client = Client(webdav_options)
 tempdir = fetch_database(webdav_client)
+
+conn, cur  = open_database(tempdir)
+# testing
+res = cur.execute("SELECT name FROM sqlite_master")
+print(res.fetchall())
 
 if tempdir not in ["/", ""]:
     print(tempdir)
