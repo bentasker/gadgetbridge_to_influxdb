@@ -35,11 +35,13 @@ from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 
+### Config section
 
 # This expects hostname and scheme
 #
-# For nextcloud it'll be https://[nextcloud domain]"
+# For nextcloud it'll be https://[nextcloud domain]/remote.php/dav/
 WEBDAV_URL = os.getenv("WEBDAV_URL", False)
+
 # Path to the export file
 WEBDAV_PATH = os.getenv("WEBDAV_PATH", "files/service_user/GadgetBridge/")
 
@@ -47,6 +49,7 @@ WEBDAV_PATH = os.getenv("WEBDAV_PATH", "files/service_user/GadgetBridge/")
 WEBDAV_USER =  os.getenv("WEBDAV_USER", False)
 WEBDAV_PASS =  os.getenv("WEBDAV_PASS", False)
 
+# What's the filename of the file on the webdav server?
 EXPORT_FILE = os.getenv("EXPORT_FILENAME", "gadgetbridge")
 
 # How far back in time should we query when extracting stats?
@@ -59,10 +62,15 @@ INFLUXDB_ORG = os.getenv("INFLUXDB_ORG", "")
 INFLUXDB_MEASUREMENT = os.getenv("INFLUXDB_MEASUREMENT", "gadgetbridge")
 INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET", "testing_db")
 
+### Config ends
+
 
 def fetch_database(webdav_client):
+    ''' Connect to the WebDAV server and fetch the named database
+    file, if it exists.
+    
+    '''
     file_list = webdav_client.list(WEBDAV_PATH)
-    print(file_list)
     if EXPORT_FILE in file_list:
         info = webdav_client.info(f'{WEBDAV_PATH}/{EXPORT_FILE}')
     else:
@@ -76,7 +84,6 @@ def fetch_database(webdav_client):
     webdav_client.download_sync(remote_path=f'{WEBDAV_PATH}/{EXPORT_FILE}', local_path=f'{tempdir}/gadgetbridge.sqlite')
     
     return tempdir
-    
 
 
 def open_database(tempdir):
@@ -282,43 +289,33 @@ def write_results(results):
                 
     
 
+if __name__ == "__main__":
+    if not WEBDAV_URL:
+        print("Error: WEBDAV_URL not set in environment")
+        sys.exit(1)
 
+    if not INFLUXDB_URL:
+        print("Error: INFLUXDB_URL not set in environment")
+        sys.exit(1)
 
+    webdav_options = {
+        "webdav_hostname" : WEBDAV_URL,
+        "webdav_login" : WEBDAV_USER,
+        "webdav_password" : WEBDAV_PASS
+        }
 
-if not WEBDAV_URL:
-    print("Error: WEBDAV_URL not set in environment")
-    sys.exit(1)
+    webdav_client = Client(webdav_options)
+    tempdir = fetch_database(webdav_client)
 
-if not INFLUXDB_URL:
-    print("Error: INFLUXDB_URL not set in environment")
-    sys.exit(1)
+    conn, cur  = open_database(tempdir)
+
+    # Extract data from the DB
+    results = extract_data(cur)
+
+    # Write out to InfluxDB
+    write_results(results)
     
-
-webdav_options = {
-    "webdav_hostname" : WEBDAV_URL,
-    "webdav_login" : WEBDAV_USER,
-    "webdav_password" : WEBDAV_PASS
-    }
-
-webdav_client = Client(webdav_options)
-tempdir = fetch_database(webdav_client)
-
-conn, cur  = open_database(tempdir)
-# testing
-res = cur.execute("SELECT name FROM sqlite_master")
-print(res.fetchall())
-
-# Extract data from the DB
-results = extract_data(cur)
-
-# Write out to InfluxDB
-write_results(results)
-
-if tempdir not in ["/", ""]:
-    print(tempdir)
-    shutil.rmtree(tempdir)
-    
-
-
-
-
+    # Tidy up
+    conn.close()
+    if tempdir not in ["/", ""]:
+        shutil.rmtree(tempdir)
