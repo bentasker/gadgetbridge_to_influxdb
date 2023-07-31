@@ -106,6 +106,21 @@ def extract_data(cur):
             }
         results.append(row)
     
+    stress_data_query = f"SELECT TIMESTAMP, DEVICE_ID, TYPE_NUM, STRESS FROM HUAMI_STRESS_SAMPLE WHERE TIMESTAMP >= {query_start_bound} ORDER BY TIMESTAMP ASC"
+    
+    res = cur.execute(stress_data_query)
+    for r in res.fetchall():
+        row = {
+                "timestamp": r[0] * 1000000000, # Convert to nanos
+                fields : {
+                    "stress" : r[3]
+                    },
+                tags : {
+                    "type_num" : r[2],
+                    "device" : devices[f"dev-{r[1]}"]
+                    }
+            }
+        results.append(row)    
     
     
 
