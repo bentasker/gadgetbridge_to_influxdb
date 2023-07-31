@@ -29,6 +29,7 @@ import shutil
 import sqlite3
 import sys
 import tempfile
+import time
 from webdav3.client import Client
 
 
@@ -75,6 +76,38 @@ def open_database(tempdir):
     return conn, cur
 
 
+def extract_data(cur):
+    ''' Query the database for data
+    '''
+    results = []
+    devices = {}
+    query_start_bound = int(time.time())
+
+    # Pull out device names
+    device_query = "select _id, NAME from DEVICE"
+    res = cur.execute(device_query)
+    for r in res.fetchall():
+        devices[f"dev-{r[0]}"] = r[1]
+
+    # Get SpO2 info
+    spo2_data_query = f"SELECT TIMESTAMP, DEVICE_ID, TYPE_NUM, SPO2 FROM HUAMI_SPO2_SAMPLE WHERE TIMESTAMP >= {query_start_bound} ORDER BY TIMESTAMP ASC"
+
+    res = cur.execute(spo2_data_query)
+    for r in res.fetchall():
+        row = {
+                "timestamp": r[0] * 1000000000, # Convert to nanos
+                fields : {
+                    "spo2" : r[3]
+                    },
+                tags : {
+                    "type_num" : r[2],
+                    "device" : devices[f"dev-{r[1]}"]
+                    }
+            }
+        results.append(row)
+    
+    
+    
 
 
 if not WEBDAV_URL:
@@ -96,6 +129,8 @@ conn, cur  = open_database(tempdir)
 # testing
 res = cur.execute("SELECT name FROM sqlite_master")
 print(res.fetchall())
+
+extract_data(cur)
 
 if tempdir not in ["/", ""]:
     print(tempdir)
