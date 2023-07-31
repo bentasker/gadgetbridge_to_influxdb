@@ -213,7 +213,40 @@ def extract_data(cur):
                 }
             results.append(row)        
         
-
+    # Get values from the activity table
+    #
+    # Activity types are deliniated by the value of RAW_KIND
+    # but there isn't currently a reliable mapping for the 
+    # meaning of each. There are also suggestions online that
+    # the meanings sometimes change between firmware revisions
+    # 
+    # So, we'll just expose the value as a tag rather than attempting
+    # to map it to anything
+    query = ("SELECT TIMESTAMP, DEVICE_ID, RAW_INTENSITY, STEPS, RAW_KIND, HEART_RATE, SLEEP,"
+        "DEEP_SLEEP, REM_SLEEP FROM HUAMI_EXTENDED_ACTIVITY_SAMPLE " 
+        f"WHERE TIMESTAMP >= {query_start_bound} "
+        "ORDER BY TIMESTAMP ASC")
+    
+    res = cur.execute(data_query)
+    for r in res.fetchall():
+        row = {
+                "timestamp": r[0] * 1000000000, # Convert to nanos
+                fields : {
+                    "intensity" : r[2],
+                    "steps" : r[3],
+                    "heart_rate" : r[5],
+                    "sleep" : r[6],
+                    "deep_sleep" : r[7],
+                    "rem_sleep" : r[8],
+                    },
+                tags : {
+                    "device" : devices[f"dev-{r[1]}"],
+                    "activity_kind" : r[4],
+                    "sample_type" : "activity"
+                    }
+            }
+        results.append(row)        
+    
 
 
     return results
