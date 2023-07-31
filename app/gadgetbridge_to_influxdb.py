@@ -47,6 +47,9 @@ WEBDAV_PASS =  os.getenv("WEBDAV_PASS", False)
 
 EXPORT_FILE = os.getenv("EXPORT_FILENAME", "gadgetbridge")
 
+# How far back in time should we query when extracting stats?
+QUERY_DURATION = int(os.getenv("QUERY_DURATION", 7200))
+
 
 def fetch_database(webdav_client):
     file_list = webdav_client.list(WEBDAV_PATH)
@@ -81,7 +84,7 @@ def extract_data(cur):
     '''
     results = []
     devices = {}
-    query_start_bound = int(time.time())
+    query_start_bound = int(time.time()) - QUERY_DURATION
 
     # Pull out device names
     device_query = "select _id, NAME from DEVICE"
