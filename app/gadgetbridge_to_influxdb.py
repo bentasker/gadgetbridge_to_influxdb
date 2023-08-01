@@ -285,7 +285,7 @@ def write_results(results):
                     p = p.field(field, row['fields'][field])
                     
                 p = p.time(row['timestamp'])
-                _write_client.write(INFLUXDB_BUCKET, p)
+                _write_client.write(INFLUXDB_BUCKET, INFLUXDB_ORG, p)
                 
     
 
