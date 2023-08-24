@@ -254,7 +254,7 @@ def extract_data(cur):
     
     res = cur.execute(data_query)
     for r in res.fetchall():
-        print(r)
+        #print(r)
         row = {
                 "timestamp": r[0] * 1000000000, # Convert to nanos
                 "fields" : {
@@ -272,6 +272,31 @@ def extract_data(cur):
                     }
             }
         results.append(row)        
+
+    # Get normal steps and HR measurements
+    data_query = ("SELECT TIMESTAMP, DEVICE_ID, RAW_INTENSITY, STEPS, RAW_KIND, HEART_RATE"
+        " FROM MI_BAND_ACTIVITY_SAMPLE " 
+        f"WHERE TIMESTAMP >= {query_start_bound} "
+        "ORDER BY TIMESTAMP ASC")    
+
+    res = cur.execute(data_query)
+    for r in res.fetchall():
+        row = {
+                "timestamp": r[0] * 1000000000, # Convert to nanos
+                "fields" : {
+                    "intensity" : r[2],
+                    "steps" : r[3],
+                    "heart_rate" : r[5],
+                    "raw_intensity" : r[2],
+                    "raw_kind" : r[4]
+                    },
+                "tags" : {
+                    "device" : devices[f"dev-{r[1]}"],
+                    "sample_type" : "periodic_samples"
+                    }
+            }
+        results.append(row)     
+
 
     return results
 
