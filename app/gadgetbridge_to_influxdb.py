@@ -123,10 +123,10 @@ def extract_data(cur):
     for r in res.fetchall():
         row = {
                 "timestamp": r[0] * 1000000000, # Convert to nanos
-                fields : {
+                "fields" : {
                     "spo2" : r[3]
                     },
-                tags : {
+                "tags" : {
                     "type_num" : r[2],
                     "device" : devices[f"dev-{r[1]}"]
                     }
@@ -141,10 +141,10 @@ def extract_data(cur):
     for r in res.fetchall():
         row = {
                 "timestamp": r[0] * 1000000000, # Convert to nanos
-                fields : {
+                "fields" : {
                     "stress" : r[3]
                     },
-                tags : {
+                "tags" : {
                     "type_num" : r[2],
                     "device" : devices[f"dev-{r[1]}"]
                     }
@@ -159,10 +159,10 @@ def extract_data(cur):
     for r in res.fetchall():
         row = {
                 "timestamp": r[0] * 1000000000, # Convert to nanos
-                fields : {
+                "fields" : {
                     "sleep_respiratory_rate" : r[2]
                     },
-                tags : {
+                "tags" : {
                     "device" : devices[f"dev-{r[1]}"]
                     }
             }
@@ -178,7 +178,7 @@ def extract_data(cur):
     for r in res.fetchall():
         row = {
                 "timestamp": r[0] * 1000000000, # Convert to nanos
-                fields : {
+                "fields" : {
                     "pai_low" : r[2],
                     "pai_moderate" : r[3],
                     "pai_high" : r[4],
@@ -188,7 +188,7 @@ def extract_data(cur):
                     "pai_today" : r[8],
                     "pai_total" : r[9]
                     },
-                tags : {
+                "tags" : {
                     "device" : devices[f"dev-{r[1]}"]
                     }
             }
@@ -202,10 +202,10 @@ def extract_data(cur):
     for r in res.fetchall():
         row = {
                 "timestamp": r[0] * 1000000000, # Convert to nanos
-                fields : {
+                "fields" : {
                     "battery_level" : r[2]
                     },
-                tags : {
+                "tags" : {
                     "device" : devices[f"dev-{r[1]}"],
                     "battery" : r[3]
                     }
@@ -228,10 +228,10 @@ def extract_data(cur):
         for r in res.fetchall():
             row = {
                     "timestamp": r[0] * 1000000000, # Convert to nanos
-                    fields : {
+                    "fields" : {
                         "heart_rate" : r[2]
                         },
-                    tags : {
+                    "tags" : {
                         "device" : devices[f"dev-{r[1]}"],
                         "sample_type" : rate_type
                         }
@@ -256,7 +256,7 @@ def extract_data(cur):
     for r in res.fetchall():
         row = {
                 "timestamp": r[0] * 1000000000, # Convert to nanos
-                fields : {
+                "fields" : {
                     "intensity" : r[2],
                     "steps" : r[3],
                     "heart_rate" : r[5],
@@ -264,7 +264,7 @@ def extract_data(cur):
                     "deep_sleep" : r[7],
                     "rem_sleep" : r[8],
                     },
-                tags : {
+                "tags" : {
                     "device" : devices[f"dev-{r[1]}"],
                     "activity_kind" : r[4],
                     "sample_type" : "activity"
