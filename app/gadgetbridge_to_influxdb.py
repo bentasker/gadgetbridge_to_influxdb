@@ -314,6 +314,8 @@ def write_results(results):
                     p = p.tag(tag, row['tags'][tag])
                     
                 for field in row['fields']:
+                    if row['fields'][field] == -1:
+                        continue
                     p = p.field(field, row['fields'][field])
                     
                 p = p.time(row['timestamp'])
@@ -352,5 +354,5 @@ if __name__ == "__main__":
     
     # Tidy up
     conn.close()
-    if tempdir not in ["/", ""]:
-        shutil.rmtree(tempdir)
+    #if tempdir not in ["/", ""]:
+    #    shutil.rmtree(tempdir)
