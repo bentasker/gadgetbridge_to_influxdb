@@ -221,7 +221,7 @@ def extract_data(cur):
         }
     
     for rate_type in rate_types:
-        query = (f"SELECT TIMESTAMP, DEVICE_ID, HEART_RATE FROM {rate_types[rate_type]} "
+        data_query = (f"SELECT TIMESTAMP, DEVICE_ID, HEART_RATE FROM {rate_types[rate_type]} "
             f"WHERE TIMESTAMP >= {query_start_bound} "
             "ORDER BY TIMESTAMP ASC")
         res = cur.execute(data_query)
@@ -247,13 +247,14 @@ def extract_data(cur):
     # 
     # So, we'll just expose the value as a tag rather than attempting
     # to map it to anything
-    query = ("SELECT TIMESTAMP, DEVICE_ID, RAW_INTENSITY, STEPS, RAW_KIND, HEART_RATE, SLEEP,"
+    data_query = ("SELECT TIMESTAMP, DEVICE_ID, RAW_INTENSITY, STEPS, RAW_KIND, HEART_RATE, SLEEP,"
         "DEEP_SLEEP, REM_SLEEP FROM HUAMI_EXTENDED_ACTIVITY_SAMPLE " 
         f"WHERE TIMESTAMP >= {query_start_bound} "
         "ORDER BY TIMESTAMP ASC")
     
     res = cur.execute(data_query)
     for r in res.fetchall():
+        print(r)
         row = {
                 "timestamp": r[0] * 1000000000, # Convert to nanos
                 "fields" : {
