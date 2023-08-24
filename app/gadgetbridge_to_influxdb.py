@@ -79,7 +79,7 @@ def fetch_database(webdav_client):
         
     # Create a temporary directory to operate from
     tempdir = tempfile.mkdtemp()
-
+    print(tempdir)
     # Download the file
     webdav_client.download_sync(remote_path=f'{WEBDAV_PATH}/{EXPORT_FILE}', local_path=f'{tempdir}/gadgetbridge.sqlite')
     
@@ -104,7 +104,13 @@ def extract_data(cur):
 
     # Pull out device names
     device_query = "select _id, NAME from DEVICE"
-    res = cur.execute(device_query)
+    try:
+        res = cur.execute(device_query)
+    except sqlite3.OperationalError as e: 
+        # We received an empty db
+        print("Unable to fetch stats - received an empty database")
+        return False
+    
     for r in res.fetchall():
         devices[f"dev-{r[0]}"] = r[1]
 
@@ -311,6 +317,9 @@ if __name__ == "__main__":
 
     # Extract data from the DB
     results = extract_data(cur)
+    if not results:
+        print("Data extraction failed")
+        sys.exit(1)
 
     # Write out to InfluxDB
     write_results(results)
