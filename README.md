@@ -2,9 +2,8 @@
 
 This script was originally written to fetch a [Gadgetbridge](https://www.gadgetbridge.org/) database export from a WebDAV server (in my case, [Nextcloud](https://nextcloud.com/)) and then query it to extract stats from Huami devices such as the Amznfit Bip.
 
-Original design and build notes are in [MISC#34](https://projects.bentasker.co.uk/gils_projects/issue/jira-projects/MISC/34.html), however I didn't get as far as using this in anger: it turns out that the Bip 3 is not Gadgetbridge compatible, so I had to [take another route](https://projects.bentasker.co.uk/gils_projects/issue/jira-projects/MISC/35.html).
+Original design and build notes are in [MISC#34](https://projects.bentasker.co.uk/gils_projects/issue/jira-projects/MISC/34.html), however when first written it turned out that the Bip 3 was not Gadgetbridge compatible, so I had to [take another route](https://www.bentasker.co.uk/posts/blog/software-development/extracting-data-from-zepp-app-for-local-storage-in-influxdb.html). However, it has since [become possible](https://projects.bentasker.co.uk/gils_projects/issue/jira-projects/MISC/34.html#comment5397) to use the Bip with Gadgetbridge.
 
-For those with Gadgetbridge compatible HUAMI devices though, it *should* be functional (or can at least function as a starting point).
 
 ----
 
