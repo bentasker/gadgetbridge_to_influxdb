@@ -139,8 +139,9 @@ def extract_data(cur):
     
     res = cur.execute(stress_data_query)
     for r in res.fetchall():
+        # Note, the timestamps for these items in the SQliteDB are in ms not S
         row = {
-                "timestamp": r[0] * 1000000000, # Convert to nanos
+                "timestamp": r[0] * 1000000, # Convert to nanos
                 "fields" : {
                     "stress" : r[3]
                     },
@@ -157,8 +158,10 @@ def extract_data(cur):
     
     res = cur.execute(data_query)
     for r in res.fetchall():
+        # I don't currently have any data examples of this, but I assume it will be in ms
+        # the saame as the other HUAMI_*SAMPLE entries
         row = {
-                "timestamp": r[0] * 1000000000, # Convert to nanos
+                "timestamp": r[0] * 1000000, # Convert to nanos
                 "fields" : {
                     "sleep_respiratory_rate" : r[2]
                     },
@@ -176,8 +179,9 @@ def extract_data(cur):
     
     res = cur.execute(data_query)
     for r in res.fetchall():
+        # Note, the timestamps for these items in the SQliteDB are in ms not S
         row = {
-                "timestamp": r[0] * 1000000000, # Convert to nanos
+                "timestamp": r[0] * 1000000, # Convert to nanos
                 "fields" : {
                     "pai_low" : r[2],
                     "pai_moderate" : r[3],
@@ -226,8 +230,10 @@ def extract_data(cur):
             "ORDER BY TIMESTAMP ASC")
         res = cur.execute(data_query)
         for r in res.fetchall():
+            # I don't currently have any data examples of this, but I assume it will be in ms
+            # the saame as the other HUAMI_*SAMPLE entries            
             row = {
-                    "timestamp": r[0] * 1000000000, # Convert to nanos
+                    "timestamp": r[0] * 1000000, # Convert to nanos
                     "fields" : {
                         "heart_rate" : r[2]
                         },
@@ -254,9 +260,10 @@ def extract_data(cur):
     
     res = cur.execute(data_query)
     for r in res.fetchall():
-        #print(r)
+        # I don't currently have any data examples of this, but I assume it will be in ms
+        # the saame as the other HUAMI_*SAMPLE entries
         row = {
-                "timestamp": r[0] * 1000000000, # Convert to nanos
+                "timestamp": r[0] * 1000000, # Convert to nanos
                 "fields" : {
                     "intensity" : r[2],
                     "steps" : r[3],
