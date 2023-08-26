@@ -105,6 +105,7 @@ def extract_data(cur):
     '''
     results = []
     devices = {}
+    devices_observed = {}
     query_start_bound = int(time.time()) - QUERY_DURATION
 
     # Pull out device names
@@ -126,8 +127,9 @@ def extract_data(cur):
 
     res = cur.execute(spo2_data_query)
     for r in res.fetchall():
+        row_ts = r[0] * 1000000000 # Convert to nanos
         row = {
-                "timestamp": r[0] * 1000000000, # Convert to nanos
+                "timestamp": row_ts, 
                 "fields" : {
                     "spo2" : r[3]
                     },
@@ -137,6 +139,8 @@ def extract_data(cur):
                     }
             }
         results.append(row)
+        if f"dev-{r[1]}" not in devices_observed or devices_observed[f"dev-{r[1]}"] < row_ts:
+            devices_observed[f"dev-{r[1]}"] = row_ts
     
     stress_data_query = ("SELECT TIMESTAMP, DEVICE_ID, TYPE_NUM, STRESS FROM HUAMI_STRESS_SAMPLE "
         f"WHERE TIMESTAMP >= {query_start_bound} "
@@ -145,8 +149,9 @@ def extract_data(cur):
     res = cur.execute(stress_data_query)
     for r in res.fetchall():
         # Note, the timestamps for these items in the SQliteDB are in ms not S
+        row_ts = r[0] * 1000000
         row = {
-                "timestamp": r[0] * 1000000, # Convert to nanos
+                "timestamp": row_ts, 
                 "fields" : {
                     "stress" : r[3]
                     },
@@ -166,7 +171,9 @@ def extract_data(cur):
         if time.gmtime(r[0] / 1000).tm_hour not in SLEEP_HOURS:
             row['fields']['stress_exc_sleep'] = r[3]
         
-        results.append(row)    
+        results.append(row)
+        if f"dev-{r[1]}" not in devices_observed or devices_observed[f"dev-{r[1]}"] < row_ts:
+            devices_observed[f"dev-{r[1]}"] = row_ts        
     
     data_query = ("SELECT TIMESTAMP, DEVICE_ID, RATE FROM HUAMI_SLEEP_RESPIRATORY_RATE_SAMPLE "
         f"WHERE TIMESTAMP >= {query_start_bound} "
@@ -176,8 +183,9 @@ def extract_data(cur):
     for r in res.fetchall():
         # I don't currently have any data examples of this, but I assume it will be in ms
         # the saame as the other HUAMI_*SAMPLE entries
+        row_ts = r[0] * 1000000
         row = {
-                "timestamp": r[0] * 1000000, # Convert to nanos
+                "timestamp": row_ts, # Convert to nanos
                 "fields" : {
                     "sleep_respiratory_rate" : r[2]
                     },
@@ -185,7 +193,9 @@ def extract_data(cur):
                     "device" : devices[f"dev-{r[1]}"]
                     }
             }
-        results.append(row)        
+        results.append(row)
+        if f"dev-{r[1]}" not in devices_observed or devices_observed[f"dev-{r[1]}"] < row_ts:
+            devices_observed[f"dev-{r[1]}"] = row_ts                
 
 
     data_query = ("SELECT TIMESTAMP, DEVICE_ID, PAI_LOW, PAI_MODERATE, PAI_HIGH, TIME_LOW," 
@@ -196,8 +206,9 @@ def extract_data(cur):
     res = cur.execute(data_query)
     for r in res.fetchall():
         # Note, the timestamps for these items in the SQliteDB are in ms not S
+        row_ts = r[0] * 1000000
         row = {
-                "timestamp": r[0] * 1000000, # Convert to nanos
+                "timestamp": row_ts, # Convert to nanos
                 "fields" : {
                     "pai_low" : r[2],
                     "pai_moderate" : r[3],
@@ -212,7 +223,9 @@ def extract_data(cur):
                     "device" : devices[f"dev-{r[1]}"]
                     }
             }
-        results.append(row)        
+        results.append(row)    
+        if f"dev-{r[1]}" not in devices_observed or devices_observed[f"dev-{r[1]}"] < row_ts:
+            devices_observed[f"dev-{r[1]}"] = row_ts              
 
     data_query = ("SELECT TIMESTAMP, DEVICE_ID, LEVEL, BATTERY_INDEX FROM BATTERY_LEVEL "
         f"WHERE TIMESTAMP >= {query_start_bound} "
@@ -220,8 +233,9 @@ def extract_data(cur):
     
     res = cur.execute(data_query)
     for r in res.fetchall():
+        row_ts = r[0] * 1000000000
         row = {
-                "timestamp": r[0] * 1000000000, # Convert to nanos
+                "timestamp": row_ts ,
                 "fields" : {
                     "battery_level" : r[2]
                     },
@@ -230,7 +244,9 @@ def extract_data(cur):
                     "battery" : r[3]
                     }
             }
-        results.append(row)        
+        results.append(row)
+        if f"dev-{r[1]}" not in devices_observed or devices_observed[f"dev-{r[1]}"] < row_ts:
+            devices_observed[f"dev-{r[1]}"] = row_ts         
 
 
     # Heart rates are spread across tables, depending on the sampling types
@@ -248,8 +264,9 @@ def extract_data(cur):
         for r in res.fetchall():
             # I don't currently have any data examples of this, but I assume it will be in ms
             # the saame as the other HUAMI_*SAMPLE entries            
+            row_ts = r[0] * 1000000
             row = {
-                    "timestamp": r[0] * 1000000, # Convert to nanos
+                    "timestamp": row_ts, # Convert to nanos
                     "fields" : {
                         "heart_rate" : r[2]
                         },
@@ -258,7 +275,9 @@ def extract_data(cur):
                         "sample_type" : rate_type
                         }
                 }
-            results.append(row)        
+            results.append(row)
+            if f"dev-{r[1]}" not in devices_observed or devices_observed[f"dev-{r[1]}"] < row_ts:
+                devices_observed[f"dev-{r[1]}"] = row_ts
         
     # Get values from the activity table
     #
@@ -278,8 +297,9 @@ def extract_data(cur):
     for r in res.fetchall():
         # I don't currently have any data examples of this, but I assume it will be in ms
         # the saame as the other HUAMI_*SAMPLE entries
+        row_ts = r[0] * 1000000
         row = {
-                "timestamp": r[0] * 1000000, # Convert to nanos
+                "timestamp": row_ts, # Convert to nanos
                 "fields" : {
                     "intensity" : r[2],
                     "steps" : r[3],
@@ -294,7 +314,9 @@ def extract_data(cur):
                     "sample_type" : "activity"
                     }
             }
-        results.append(row)        
+        results.append(row)
+        if f"dev-{r[1]}" not in devices_observed or devices_observed[f"dev-{r[1]}"] < row_ts:
+            devices_observed[f"dev-{r[1]}"] = row_ts        
 
     # Get normal steps and HR measurements
     data_query = ("SELECT TIMESTAMP, DEVICE_ID, RAW_INTENSITY, STEPS, RAW_KIND, HEART_RATE"
@@ -304,8 +326,9 @@ def extract_data(cur):
 
     res = cur.execute(data_query)
     for r in res.fetchall():
+        row_ts = r[0] * 1000000000
         row = {
-                "timestamp": r[0] * 1000000000, # Convert to nanos
+                "timestamp": row_ts, # Convert to nanos
                 "fields" : {
                     "intensity" : r[2],
                     "steps" : r[3],
@@ -319,18 +342,13 @@ def extract_data(cur):
             }
 
         results.append(row)     
+        if f"dev-{r[1]}" not in devices_observed or devices_observed[f"dev-{r[1]}"] < row_ts:
+            devices_observed[f"dev-{r[1]}"] = row_ts           
 
-    # Create a field to record when we last synced
+    # Create a field to record when we last synced, based on the values in devices_observed
     now = time.time_ns()
-    last_dates_query = ("SELECT DEVICE_ID, max(TIMESTAMP) "
-        "FROM MI_BAND_ACTIVITY_SAMPLE "
-        f"WHERE TIMESTAMP >= {query_start_bound} "
-        "GROUP BY DEVICE_ID"
-        )
-
-    res = cur.execute(last_dates_query)
-    for r in res.fetchall():
-        row_ts = r[1] * 1000000000 # Convert to nanos
+    for device in devices_observed:
+        row_ts = devices_observed[device]
         row_age = now - row_ts
         row = {
                 "timestamp": now,
@@ -339,11 +357,11 @@ def extract_data(cur):
                     "last_seen_age" : row_age
                     },
                 "tags" : {
-                    "device" : devices[f"dev-{r[0]}"],
+                    "device" : devices[device],
                     "sample_type" : "sync_check"
                     }
             }
-
+        print(row)
         results.append(row)   
 
     return results
