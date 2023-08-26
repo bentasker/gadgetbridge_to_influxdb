@@ -67,6 +67,10 @@ INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET", "testing_db")
 SLEEP_HOURS = os.getenv("SLEEP_HOURS", "0,1,2,3,4,5,6").split(",")
 
 
+# For testing/debugging only - if set to N, the copy of the sqlite
+# db will be retained
+REMOVE_TEMP_DB = os.getenv("REMOVE_TEMP_DB", "Y")
+
 ### Config ends
 
 
@@ -123,12 +127,12 @@ def extract_data(cur):
 
     # Get SpO2 info
     spo2_data_query = ("SELECT TIMESTAMP, DEVICE_ID, TYPE_NUM, SPO2 FROM HUAMI_SPO2_SAMPLE "
-        f"WHERE TIMESTAMP >= {query_start_bound} "
+        f"WHERE TIMESTAMP >= {query_start_bound_ms} "
         "ORDER BY TIMESTAMP ASC")
 
     res = cur.execute(spo2_data_query)
     for r in res.fetchall():
-        row_ts = r[0] * 1000000000 # Convert to nanos
+        row_ts = r[0] * 1000000 # Convert to nanos
         row = {
                 "timestamp": row_ts, 
                 "fields" : {
@@ -427,4 +431,7 @@ if __name__ == "__main__":
     # Tidy up
     conn.close()
     if tempdir not in ["/", ""]:
-        shutil.rmtree(tempdir)
+        if REMOVE_TEMP_DB == "N":
+            print(tempdir)
+        else:
+            shutil.rmtree(tempdir)
