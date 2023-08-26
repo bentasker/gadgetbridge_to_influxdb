@@ -62,6 +62,11 @@ INFLUXDB_ORG = os.getenv("INFLUXDB_ORG", "")
 INFLUXDB_MEASUREMENT = os.getenv("INFLUXDB_MEASUREMENT", "gadgetbridge")
 INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET", "testing_db")
 
+# Which hours should be considered sleeping hours?
+# utilities/gadgetbridge_to_influxdb#6
+SLEEP_HOURS = os.getenv("SLEEP_HOURS", "0,1,2,3,4,5,6").split(",")
+
+
 ### Config ends
 
 
@@ -150,6 +155,17 @@ def extract_data(cur):
                     "device" : devices[f"dev-{r[1]}"]
                     }
             }
+        
+        
+        # Convert the timestamp to a time object so that we can check what hour of
+        # the day it currently represents
+        # 
+        # If it's outside of sleeping hours we'll add a field
+        #
+        # utilities/gadgetbridge_to_influxdb#6
+        if time.gmtime(r[0] / 1000).tm_hour not in SLEEP_HOURS:
+            row['fields']['stress_exc_sleep'] = r[3]
+        
         results.append(row)    
     
     data_query = ("SELECT TIMESTAMP, DEVICE_ID, RATE FROM HUAMI_SLEEP_RESPIRATORY_RATE_SAMPLE "
