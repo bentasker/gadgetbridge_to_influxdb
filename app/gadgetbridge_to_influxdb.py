@@ -84,7 +84,6 @@ def fetch_database(webdav_client):
         
     # Create a temporary directory to operate from
     tempdir = tempfile.mkdtemp()
-    print(tempdir)
     # Download the file
     webdav_client.download_sync(remote_path=f'{WEBDAV_PATH}/{EXPORT_FILE}', local_path=f'{tempdir}/gadgetbridge.sqlite')
     
@@ -362,7 +361,6 @@ def extract_data(cur):
                     "sample_type" : "sync_check"
                     }
             }
-        print(row)
         results.append(row)   
 
     return results
@@ -427,5 +425,5 @@ if __name__ == "__main__":
     
     # Tidy up
     conn.close()
-    #if tempdir not in ["/", ""]:
-    #    shutil.rmtree(tempdir)
+    if tempdir not in ["/", ""]:
+        shutil.rmtree(tempdir)
