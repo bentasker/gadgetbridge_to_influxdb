@@ -106,6 +106,8 @@ def extract_data(cur):
     devices = {}
     devices_observed = {}
     query_start_bound = int(time.time()) - QUERY_DURATION
+    # Some tables use ms timestamps
+    query_start_bound_ms = query_start_bound * 1000
 
     # Pull out device names
     device_query = "select _id, NAME from DEVICE"
@@ -142,9 +144,8 @@ def extract_data(cur):
             devices_observed[f"dev-{r[1]}"] = row_ts
     
     stress_data_query = ("SELECT TIMESTAMP, DEVICE_ID, TYPE_NUM, STRESS FROM HUAMI_STRESS_SAMPLE "
-        f"WHERE TIMESTAMP >= {query_start_bound} "
+        f"WHERE TIMESTAMP >= {query_start_bound_ms} "
         "ORDER BY TIMESTAMP ASC")
-    
     res = cur.execute(stress_data_query)
     for r in res.fetchall():
         # Note, the timestamps for these items in the SQliteDB are in ms not S
@@ -175,7 +176,7 @@ def extract_data(cur):
             devices_observed[f"dev-{r[1]}"] = row_ts        
     
     data_query = ("SELECT TIMESTAMP, DEVICE_ID, RATE FROM HUAMI_SLEEP_RESPIRATORY_RATE_SAMPLE "
-        f"WHERE TIMESTAMP >= {query_start_bound} "
+        f"WHERE TIMESTAMP >= {query_start_bound_ms} "
         "ORDER BY TIMESTAMP ASC")
     
     res = cur.execute(data_query)
@@ -200,7 +201,7 @@ def extract_data(cur):
     data_query = ("SELECT TIMESTAMP, DEVICE_ID, PAI_LOW, PAI_MODERATE, PAI_HIGH, TIME_LOW," 
         "TIME_MODERATE, TIME_HIGH, PAI_TODAY, PAI_TOTAL "
         "FROM HUAMI_PAI_SAMPLE "
-        f"WHERE TIMESTAMP >= {query_start_bound} ORDER BY TIMESTAMP ASC")
+        f"WHERE TIMESTAMP >= {query_start_bound_ms} ORDER BY TIMESTAMP ASC")
     
     res = cur.execute(data_query)
     for r in res.fetchall():
@@ -257,7 +258,7 @@ def extract_data(cur):
     
     for rate_type in rate_types:
         data_query = (f"SELECT TIMESTAMP, DEVICE_ID, HEART_RATE FROM {rate_types[rate_type]} "
-            f"WHERE TIMESTAMP >= {query_start_bound} "
+            f"WHERE TIMESTAMP >= {query_start_bound_ms} "
             "ORDER BY TIMESTAMP ASC")
         res = cur.execute(data_query)
         for r in res.fetchall():
@@ -289,7 +290,7 @@ def extract_data(cur):
     # to map it to anything
     data_query = ("SELECT TIMESTAMP, DEVICE_ID, RAW_INTENSITY, STEPS, RAW_KIND, HEART_RATE, SLEEP,"
         "DEEP_SLEEP, REM_SLEEP FROM HUAMI_EXTENDED_ACTIVITY_SAMPLE " 
-        f"WHERE TIMESTAMP >= {query_start_bound} "
+        f"WHERE TIMESTAMP >= {query_start_bound_ms} "
         "ORDER BY TIMESTAMP ASC")
     
     res = cur.execute(data_query)
