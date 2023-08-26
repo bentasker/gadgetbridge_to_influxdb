@@ -293,7 +293,6 @@ def extract_data(cur):
                 "fields" : {
                     "intensity" : r[2],
                     "steps" : r[3],
-                    "heart_rate" : r[5],
                     "raw_intensity" : r[2],
                     "raw_kind" : r[4]
                     },
@@ -302,7 +301,9 @@ def extract_data(cur):
                     "sample_type" : "periodic_samples"
                     }
             }
+
         results.append(row)     
+
 
 
     return results
@@ -323,6 +324,12 @@ def write_results(results):
                 for field in row['fields']:
                     if row['fields'][field] == -1:
                         continue
+                    
+                    # Skip any special heart_rate values
+                    # utilities/gadgetbridge_to_influxdb#1
+                    if field == "heart_rate" and row['fields'][field] > 253:
+                        continue
+                    
                     p = p.field(field, row['fields'][field])
                     
                 p = p.time(row['timestamp'])
