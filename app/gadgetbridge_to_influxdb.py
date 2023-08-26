@@ -333,7 +333,8 @@ def extract_data(cur):
                     "intensity" : r[2],
                     "steps" : r[3],
                     "raw_intensity" : r[2],
-                    "raw_kind" : r[4]
+                    "raw_kind" : r[4],
+                    "heart_rate" : r[5]
                     },
                 "tags" : {
                     "device" : devices[f"dev-{r[1]}"],
