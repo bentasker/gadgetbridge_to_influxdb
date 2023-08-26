@@ -320,7 +320,31 @@ def extract_data(cur):
 
         results.append(row)     
 
+    # Create a field to record when we last synced
+    now = time.time_ns()
+    last_dates_query = ("SELECT DEVICE_ID, max(TIMESTAMP) "
+        "FROM MI_BAND_ACTIVITY_SAMPLE "
+        f"WHERE TIMESTAMP >= {query_start_bound} "
+        "GROUP BY DEVICE_ID"
+        )
 
+    res = cur.execute(last_dates_query)
+    for r in res.fetchall():
+        row_ts = r[1] * 1000000000 # Convert to nanos
+        row_age = now - row_ts
+        row = {
+                "timestamp": now,
+                "fields" : {
+                    "last_seen" : row_ts,
+                    "last_seen_age" : row_age
+                    },
+                "tags" : {
+                    "device" : devices[f"dev-{r[0]}"],
+                    "sample_type" : "sync_check"
+                    }
+            }
+
+        results.append(row)   
 
     return results
 
