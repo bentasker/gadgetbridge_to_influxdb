@@ -176,7 +176,7 @@ def extract_data(cur):
         # If it's outside of sleeping hours we'll add a field
         #
         # utilities/gadgetbridge_to_influxdb#6
-        if time.gmtime(r[0] / 1000).tm_hour not in SLEEP_HOURS:
+        if str(time.gmtime(r[0] / 1000).tm_hour) not in SLEEP_HOURS:
             row['fields']['stress_exc_sleep'] = r[3]
         
         results.append(row)
@@ -216,6 +216,12 @@ def extract_data(cur):
                             "stress" : "point_in_time"
                             }
                     }  
+                        
+                # Check whether we're looking at a non sleeping hour
+                if str(time.gmtime(stress_period_start).tm_hour) not in SLEEP_HOURS:
+                    # Add a counter
+                    row['fields'][f"{stress_level}_exc_sleep"] = 1
+                    
                 results.append(row)
                 stress_period_start += 60
 
