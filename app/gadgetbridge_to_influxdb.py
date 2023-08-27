@@ -53,7 +53,7 @@ WEBDAV_PASS =  os.getenv("WEBDAV_PASS", False)
 EXPORT_FILE = os.getenv("EXPORT_FILENAME", "gadgetbridge")
 
 # How far back in time should we query when extracting stats?
-QUERY_DURATION = int(os.getenv("QUERY_DURATION", 7200))
+QUERY_DURATION = int(os.getenv("QUERY_DURATION", 86400))
 
 # InfluxDB settings
 INFLUXDB_URL = os.getenv("INFLUXDB_URL", False)
