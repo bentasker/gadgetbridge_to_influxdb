@@ -453,7 +453,8 @@ def extract_data(cur):
                         "timestamp": row_ts, # Convert to nanos
                         "fields" : {
                             "intensity" : r[2],
-                            f"{sleep_type}_sleep" : 1
+                            f"{sleep_type}_sleep" : 1,
+                            "sleep_stage" : sleep_type
                             },
                         "tags" : {
                             "device" : devices[f"dev-{r[1]}"],
