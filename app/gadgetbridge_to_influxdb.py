@@ -398,14 +398,20 @@ def extract_data(cur):
         if f"dev-{r[1]}" not in devices_observed or devices_observed[f"dev-{r[1]}"] < row_ts:
             devices_observed[f"dev-{r[1]}"] = row_ts           
 
-'''
+
     # Capture sleep data
     # utilities/gadgetbridge_to_influxdb#14
-    data_query = ("SELECT TIMESTAMP, DEVICE_ID, RAW_INTENSITY, RAW_KIND"
-        " FROM MI_BAND_ACTIVITY_SAMPLE " 
-        f"WHERE TIMESTAMP >= {query_start_bound} "
-        "AND RAW_KIND BETWEEN 120 AND 122 "
-        "ORDER BY TIMESTAMP ASC")  
+    data_query = ("SELECT TIMESTAMP, DEVICE_ID, RAW_INTENSITY, RAW_KIND, "
+    "LEAD (TIMESTAMP, 1) OVER (PARTITION BY DEVICE_ID, USER_ID ORDER BY TIMESTAMP) NEXT_TS, "
+    "LEAD (RAW_KIND, 1) OVER (PARTITION BY DEVICE_ID, USER_ID ORDER BY TIMESTAMP) NEXT_KIND "
+    "FROM MI_BAND_ACTIVITY_SAMPLE "
+    "WHERE "
+    "(RAW_KIND=112 "
+    "OR RAW_KIND BETWEEN 120 AND 122 "
+    "OR RAW_KIND=249) "
+    "ORDER BY TIMESTAMP "
+    )  
+
     res = cur.execute(data_query)
     for r in res.fetchall():
         
@@ -415,7 +421,10 @@ def extract_data(cur):
             sleep_type = "deep"
         elif r[3] == 122:
             sleep_type = "REM"
-
+        elif r[3] == 249:
+            sleep_type = "very_light"
+        elif r[3] == 112:
+            sleep_type = "waking"
        
         row_ts = r[0] * 1000000000
         row = {
@@ -426,12 +435,35 @@ def extract_data(cur):
                     },
                 "tags" : {
                     "device" : devices[f"dev-{r[1]}"],
-                    "sample_type" : "sleep"
+                    "sample_type" : "sleep",
+                    "sleep" : "state-change"
                     }
             }
         
-        results.append(row)     
-'''
+        results.append(row)
+
+        # Generate the per-minute stats
+        if r[4] and sleep_type not in ["waking"]:
+            sleep_start = r[0]
+            sleep_end = r[4]
+
+            while sleep_start < sleep_end:
+                row_ts = sleep_start * 1000000000
+                row = {
+                        "timestamp": row_ts, # Convert to nanos
+                        "fields" : {
+                            "intensity" : r[2],
+                            f"{sleep_type}_sleep" : 1
+                            },
+                        "tags" : {
+                            "device" : devices[f"dev-{r[1]}"],
+                            "sample_type" : "sleep",
+                            "sleep" : "point-in-time"
+                            }
+                    }
+                results.append(row)
+                sleep_start += 60
+                
 
 
     # Create a field to record when we last synced, based on the values in devices_observed
