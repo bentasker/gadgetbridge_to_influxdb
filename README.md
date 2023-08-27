@@ -22,12 +22,14 @@ The script is designed to be run in an ephemeral container, so pulls configurati
 - `WEBDAV_PASS`: WebDAV Password
 - `WEBDAV_PATH`: Path to the export directory on the webdav server (in my case it was `files/service_user/GadgetBridge/`
 - `EXPORT_FILE`: The filename of the export file on the webdav server (I called mine `gadgetbridge`)
-- `QUERY_DURATION`: What time period (in seconds) should we query? Default is `7200`
+- `QUERY_DURATION`: What time period (in seconds) should we query? Default is `86400`
 - `INFLUXDB_URL`: URL of your InfluxDB server
 - `INFLUXDB_TOKEN`: Your influxDB token (or `user:pass` if you're on 1.x)
 - `INFLUXDB_ORG`: Your InfluxDB org name or ID
 - `INFLUXDB_BUCKET`: The bucket/database to write into
 - `INFLUXDB_MEASUREMENT`: The measurement to write into (Default `gadgetbridge`)
+- `SLEEP_HOURS`: Comma seperated list of hours to consider as sleeping hours for stress averaging purposes (default `0,1,2,3,4,5,6`)
+
 
 ----
 
