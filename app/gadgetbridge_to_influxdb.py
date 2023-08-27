@@ -147,7 +147,11 @@ def extract_data(cur):
         if f"dev-{r[1]}" not in devices_observed or devices_observed[f"dev-{r[1]}"] < row_ts:
             devices_observed[f"dev-{r[1]}"] = row_ts
     
-    stress_data_query = ("SELECT TIMESTAMP, DEVICE_ID, TYPE_NUM, STRESS FROM HUAMI_STRESS_SAMPLE "
+    stress_data_query = ("SELECT TIMESTAMP, DEVICE_ID, TYPE_NUM, STRESS, "
+        # Get the next timestamp, so we can chart how long the watch believed that 
+        # stress level lasted
+        "LEAD (TIMESTAMP, 1) OVER (PARTITION BY DEVICE_ID, USER_ID, TYPE_NUM ORDER BY TIMESTAMP) NEXT_TS "
+        "FROM HUAMI_STRESS_SAMPLE "
         f"WHERE TIMESTAMP >= {query_start_bound_ms} "
         "ORDER BY TIMESTAMP ASC")
     res = cur.execute(stress_data_query)
@@ -178,6 +182,44 @@ def extract_data(cur):
         results.append(row)
         if f"dev-{r[1]}" not in devices_observed or devices_observed[f"dev-{r[1]}"] < row_ts:
             devices_observed[f"dev-{r[1]}"] = row_ts        
+    
+        # Iterate between timestamp and next_ts, creating points to note the stress level
+        # convert from ms to s
+        if r[4]:
+            stress_period_start = r[0] / 1000
+            stress_period_end = r[4] / 1000
+            while stress_period_start < stress_period_end:
+                row_ts = int(stress_period_start * 1000000000)
+                # Calculate the textual stress level for use in
+                # the counter field name
+                #
+                # these thresholds were taken from the Zepp app
+                stress_level = "stress_level_counter_unknown"
+                if r[3] <= 39:
+                    stress_level = "stress_level_counter_relaxed"
+                elif r[3] >= 40 and r[3] <= 59:
+                    stress_level = "stress_level_counter_normal"
+                elif r[3] >= 60 and r[3] <= 79:
+                    stress_level = "stress_level_counter_medium"
+                elif r[3] >= 80:
+                    stress_level = "stress_level_counter_high"
+                
+                row = {
+                        "timestamp": row_ts, 
+                        "fields" : {
+                            "current_stress_level" : r[3],
+                            stress_level: 1,
+                            },
+                        "tags" : {
+                            "type_num" : r[2],
+                            "device" : devices[f"dev-{r[1]}"],
+                            "stress" : "point_in_time"
+                            }
+                    }  
+                results.append(row)
+                stress_period_start += 60
+
+    
     
     data_query = ("SELECT TIMESTAMP, DEVICE_ID, RATE FROM HUAMI_SLEEP_RESPIRATORY_RATE_SAMPLE "
         f"WHERE TIMESTAMP >= {query_start_bound_ms} "
