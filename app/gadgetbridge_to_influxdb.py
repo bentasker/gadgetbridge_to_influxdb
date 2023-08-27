@@ -398,6 +398,42 @@ def extract_data(cur):
         if f"dev-{r[1]}" not in devices_observed or devices_observed[f"dev-{r[1]}"] < row_ts:
             devices_observed[f"dev-{r[1]}"] = row_ts           
 
+'''
+    # Capture sleep data
+    # utilities/gadgetbridge_to_influxdb#14
+    data_query = ("SELECT TIMESTAMP, DEVICE_ID, RAW_INTENSITY, RAW_KIND"
+        " FROM MI_BAND_ACTIVITY_SAMPLE " 
+        f"WHERE TIMESTAMP >= {query_start_bound} "
+        "AND RAW_KIND BETWEEN 120 AND 122 "
+        "ORDER BY TIMESTAMP ASC")  
+    res = cur.execute(data_query)
+    for r in res.fetchall():
+        
+        if r[3] == 120:
+            sleep_type = "light"
+        elif r[3] == 121:
+            sleep_type = "deep"
+        elif r[3] == 122:
+            sleep_type = "REM"
+
+       
+        row_ts = r[0] * 1000000000
+        row = {
+                "timestamp": row_ts, # Convert to nanos
+                "fields" : {
+                    "intensity" : r[2],
+                    f"{sleep_type}_sleep" : 1
+                    },
+                "tags" : {
+                    "device" : devices[f"dev-{r[1]}"],
+                    "sample_type" : "sleep"
+                    }
+            }
+        
+        results.append(row)     
+'''
+
+
     # Create a field to record when we last synced, based on the values in devices_observed
     now = time.time_ns()
     for device in devices_observed:
