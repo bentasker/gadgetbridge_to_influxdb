@@ -70,6 +70,7 @@ SLEEP_HOURS = os.getenv("SLEEP_HOURS", "0,1,2,3,4,5,6").split(",")
 # For testing/debugging only - if set to N, the copy of the sqlite
 # db will be retained
 REMOVE_TEMP_DB = os.getenv("REMOVE_TEMP_DB", "Y")
+EXPERIMENTAL_OPTS = os.getenv("EXPERIMENTAL_OPTS", "").split(",")
 
 ### Config ends
 
@@ -399,6 +400,39 @@ def extract_data(cur):
             devices_observed[f"dev-{r[1]}"] = row_ts           
 
 
+
+    results = results + get_sleep_data(cur, devices)
+
+
+    # Create a field to record when we last synced, based on the values in devices_observed
+    now = time.time_ns()
+    for device in devices_observed:
+        row_ts = devices_observed[device]
+        row_age = now - row_ts
+        row = {
+                "timestamp": now,
+                "fields" : {
+                    "last_seen" : row_ts,
+                    "last_seen_age" : row_age
+                    },
+                "tags" : {
+                    "device" : devices[device],
+                    "sample_type" : "sync_check"
+                    }
+            }
+        results.append(row)   
+
+    return results
+
+
+def get_sleep_data(cur, devices):
+    ''' Attempt to fetch sleep data and calculate periods
+    '''
+    if "SLEEP" not in EXPERIMENTAL_OPTS:
+        return []
+    
+    print("Experimental: Sleep Data")
+    results = []
     # Capture sleep data
     # utilities/gadgetbridge_to_influxdb#14
     data_query = ("SELECT TIMESTAMP, DEVICE_ID, RAW_INTENSITY, RAW_KIND, "
@@ -463,30 +497,10 @@ def extract_data(cur):
                             }
                     }
                 results.append(row)
-                sleep_start += 60
-                
-
-
-    # Create a field to record when we last synced, based on the values in devices_observed
-    now = time.time_ns()
-    for device in devices_observed:
-        row_ts = devices_observed[device]
-        row_age = now - row_ts
-        row = {
-                "timestamp": now,
-                "fields" : {
-                    "last_seen" : row_ts,
-                    "last_seen_age" : row_age
-                    },
-                "tags" : {
-                    "device" : devices[device],
-                    "sample_type" : "sync_check"
-                    }
-            }
-        results.append(row)   
-
+                sleep_start += 60    
+    
     return results
-
+    
 
 def write_results(results):
     ''' Open a connection to InfluxDB and write the results in
