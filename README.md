@@ -1,15 +1,15 @@
 # Gadgetbridge to InfluxDB
 
-This script was originally written to fetch a [Gadgetbridge](https://www.gadgetbridge.org/) database export from a WebDAV server (in my case, [Nextcloud](https://nextcloud.com/)) and then query it to extract stats from Huami devices such as the Amznfit Bip.
+This script fetches a [Gadgetbridge](https://www.gadgetbridge.org/) database export from a WebDAV server (in my case, [Nextcloud](https://nextcloud.com/)) and then queries it to extract stats from Huami devices such as the Amazfit Bip so that they can be written onwards into [InfluxDB](https://github.com/influxdata/influxdb).
 
-Original design and build notes are in [MISC#34](https://projects.bentasker.co.uk/gils_projects/issue/jira-projects/MISC/34.html), however when first written it turned out that the Bip 3 was not Gadgetbridge compatible, so I had to [take another route](https://www.bentasker.co.uk/posts/blog/software-development/extracting-data-from-zepp-app-for-local-storage-in-influxdb.html). However, it has since [become possible](https://projects.bentasker.co.uk/gils_projects/issue/jira-projects/MISC/34.html#comment5397) to use the Bip with Gadgetbridge.
+Original design and build notes are in [MISC#34](https://projects.bentasker.co.uk/gils_projects/issue/jira-projects/MISC/34.html), the project [initially had to be abandoned](https://www.bentasker.co.uk/posts/blog/software-development/extracting-data-from-zepp-app-for-local-storage-in-influxdb.html#gadgetbridge_implementation) because it was found that the Bip3 didn't work with Gadgetbridge. However, that has [since changed](https://projects.bentasker.co.uk/gils_projects/issue/jira-projects/MISC/34.html#comment5397).
 
 
 ----
 
 ### GadgetBridge configuration
 
-See [this comment](https://projects.bentasker.co.uk/gils_projects/issue/jira-projects/MISC/34.html#comment5064) for details on how to configure Gadgetbridge to periodically export its database.
+Gadgetbridge needs to be configured to periodically export its database to a WebDAV target. An example can be [found here](https://www.bentasker.co.uk/posts/blog/software-development/linking-a-bip3-smartwatch-with-gadgetbridge-to-write-stats-to-influxdb.html#phone_config) of doing that using Nextcloud.
 
 ----
 
@@ -53,7 +53,7 @@ Then, having exported the necessary env vars, simply invoke the script
 ./app/gadgetbridge_to_influxdb.py
 ```
 
-If, instead, you want to schedule runs in Kubernetes see [the example config](https://projects.bentasker.co.uk/gils_projects/issue/jira-projects/MISC/34.html#comment5083)
+If, instead, you want to schedule runs in Kubernetes see [the examples here](https://www.bentasker.co.uk/posts/blog/software-development/linking-a-bip3-smartwatch-with-gadgetbridge-to-write-stats-to-influxdb.html#invocation).
 
 ----
 
