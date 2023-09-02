@@ -2,14 +2,18 @@
 
 This script fetches a [Gadgetbridge](https://www.gadgetbridge.org/) database export from a WebDAV server (in my case, [Nextcloud](https://nextcloud.com/)) and then queries it to extract stats from Huami devices such as the Amazfit Bip so that they can be written onwards into [InfluxDB](https://github.com/influxdata/influxdb).
 
-Original design and build notes are in [MISC#34](https://projects.bentasker.co.uk/gils_projects/issue/jira-projects/MISC/34.html), the project [initially had to be abandoned](https://www.bentasker.co.uk/posts/blog/software-development/extracting-data-from-zepp-app-for-local-storage-in-influxdb.html#gadgetbridge_implementation) because it was found that the Bip3 didn't work with Gadgetbridge. However, that has [since changed](https://projects.bentasker.co.uk/gils_projects/issue/jira-projects/MISC/34.html#comment5397).
+Original design and build notes are in [MISC#34](https://projects.bentasker.co.uk/gils_projects/issue/jira-projects/MISC/34.html).
+
+The project [actually initially had to be abandoned](https://www.bentasker.co.uk/posts/blog/software-development/extracting-data-from-zepp-app-for-local-storage-in-influxdb.html#gadgetbridge_implementation) because it was found that the Bip3 didn't work with Gadgetbridge. However, that has [since changed](https://projects.bentasker.co.uk/gils_projects/issue/jira-projects/MISC/34.html#comment5397) and development resumed.
 
 
 ----
 
 ### GadgetBridge configuration
 
-Gadgetbridge needs to be configured to periodically export its database to a WebDAV target. An example can be [found here](https://www.bentasker.co.uk/posts/blog/software-development/linking-a-bip3-smartwatch-with-gadgetbridge-to-write-stats-to-influxdb.html#phone_config) of doing that using Nextcloud.
+Gadgetbridge needs to be configured to periodically export its database to a WebDAV target. 
+
+An example can be [found here](https://www.bentasker.co.uk/posts/blog/software-development/linking-a-bip3-smartwatch-with-gadgetbridge-to-write-stats-to-influxdb.html#phone_config) of doing that using Nextcloud.
 
 ----
 
