@@ -25,7 +25,7 @@ The script is designed to be run in an ephemeral container, so pulls configurati
 - `WEBDAV_USER`: WebDAV username
 - `WEBDAV_PASS`: WebDAV Password
 - `WEBDAV_PATH`: Path to the export directory on the webdav server (in my case it was `files/service_user/GadgetBridge/`
-- `EXPORT_FILE`: The filename of the export file on the webdav server (I called mine `gadgetbridge`)
+- `EXPORT_FILENAME`: The filename of the export file on the webdav server (I called mine `gadgetbridge`)
 - `QUERY_DURATION`: What time period (in seconds) should we query? Default is `86400`
 - `INFLUXDB_URL`: URL of your InfluxDB server
 - `INFLUXDB_TOKEN`: Your influxDB token (or `user:pass` if you're on 1.x)
