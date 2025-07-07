@@ -348,9 +348,7 @@ def extract_data(cur):
     
     res = cur.execute(data_query)
     for r in res.fetchall():
-        # I don't currently have any data examples of this, but I assume it will be in ms
-        # the saame as the other HUAMI_*SAMPLE entries
-        row_ts = r[0] * 1000000
+        row_ts = r[0] * 1000000000
         row = {
                 "timestamp": row_ts, # Convert to nanos
                 "fields" : {
