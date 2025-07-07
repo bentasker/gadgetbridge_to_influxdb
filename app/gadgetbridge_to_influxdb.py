@@ -343,7 +343,7 @@ def extract_data(cur):
     # to map it to anything
     data_query = ("SELECT TIMESTAMP, DEVICE_ID, RAW_INTENSITY, STEPS, RAW_KIND, HEART_RATE, SLEEP,"
         "DEEP_SLEEP, REM_SLEEP FROM HUAMI_EXTENDED_ACTIVITY_SAMPLE " 
-        f"WHERE TIMESTAMP >= {query_start_bound_ms} "
+        f"WHERE TIMESTAMP >= {query_start_bound} "
         "ORDER BY TIMESTAMP ASC")
     
     res = cur.execute(data_query)
